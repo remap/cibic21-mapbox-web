@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Manager I-Frame Example Parent</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #tokenForm {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="tokenForm">
+        <input type="text" placeholder="mapbox api token" name="mapboxToken" id="inputMapboxToken"><button
+            id="setTokenButton">Set Mapbox Token</button>
+    </div>
+    <iframe src="iframe-child.html" id="mapFrame" width="800" height="600"></iframe>
+    <div id="mapActions">
+        <button id="flyNYC">Fly to NYC</button>
+        <button id="flyUCLA">Fly to UCLA</button>
+        <button id="zoomIn">Zoom In</button>
+        <button id="zoomOut">Zoom Out</button>
+        <button id="currentLatLng">Show Current Lat Lng</button>
+        <button id="clearToken">Clear Token</button>
+    </div>
+    <script>
+        var mapMan
+        const mapIFrame = document.getElementById('mapFrame');
+        function initMapManager() {
+            if (mapIFrame.readyState === 'complete') {
+                applyConfig();
+            }
+            else {
+                mapIFrame.addEventListener('load', () => {
+                    applyConfig();
+                })
+            }
+        }
+
+        function sendMessage(action, options) {
+            mapIFrame.contentWindow.postMessage({
+                action, options
+            });
+        }
+
+        function applyConfig() {
+            sendMessage('setToken', { accessToken: mbToken });
+            sendMessage('init');
+        }
+
+
+        if (location.hash.indexOf('clearMapboxToken') > -1) {
+            localStorage.removeItem('mapboxToken');
+        }
+
+        let mbToken = localStorage.getItem('mapboxToken');
+        if (!mbToken) {
+            const tokenForm = document.getElementById('tokenForm')
+            tokenForm.style.display = 'block';
+            const tokenInput = document.getElementById('inputMapboxToken');
+            document.getElementById('setTokenButton').addEventListener('click', () => {
+                if (tokenInput.value) {
+                    localStorage.setItem('mapboxToken', tokenInput.value);
+                    mbToken = localStorage.getItem('mapboxToken');
+                    tokenForm.style.display = 'none';
+                    if (location.hash.indexOf('clearMapboxToken')) {
+                        location.hash = '';
+                    }
+                    initMapManager();
+                }
+            })
+        } else {
+            initMapManager();
+        }
+
+        // wire buttons
+
+        document.getElementById('flyNYC').addEventListener('click', () => {
+            sendMessage('map', { method: 'flyTo', args: [{ center: [-74.0060, 40.7128] }] });
+        })
+        document.getElementById('flyUCLA').addEventListener('click', () => {
+            sendMessage('map', { method: 'flyTo', args: [{ center: [-118.4452, 34.0689] }] });
+        })
+        document.getElementById('zoomIn').addEventListener('click', () => {
+            sendMessage('map', { method: 'zoomIn', args: [] });
+        })
+        document.getElementById('zoomOut').addEventListener('click', () => {
+            sendMessage('map', { method: 'zoomOut', args: [] });
+        })
+        document.getElementById('currentLatLng').addEventListener('click', () => {
+            function handleGetCenter(event) {
+                const { response, results } = event.data
+                if (response === 'mapGetCenterResult') {
+                    if (results.success) {
+                        console.log(results.success);
+                        alert(`${results.success.lat},${results.success.lng}`);
+                    }
+                    window.removeEventListener('message', handleGetCenter);
+                }
+            }
+            window.addEventListener('message', handleGetCenter);
+            sendMessage('map', { method: 'getCenter', args: [], results: true });
+        })
+
+        document.getElementById('clearToken').addEventListener('click', () => {
+            localStorage.removeItem('mapboxToken');
+            window.location.reload();
+        })
+
+    </script>
+</body>
+
+</html>
