@@ -207,6 +207,20 @@ Equivilant JS
 return map.getCenter()
 ```
 
+Return Message
+
+```json
+{
+    "name":"resultGetCenter",
+    "results":{
+        "success":{
+            "lat":34.0689,
+            "lng":-118.4452
+        }
+    }
+}
+```
+
 Message:
 ```json
 {
