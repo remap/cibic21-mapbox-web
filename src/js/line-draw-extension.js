@@ -18,11 +18,13 @@ if (MapManager) {
       }
     });
   }
-  MapManager.prototype.drawOnLine = function drawOnLine({ geojson }) {
-
-    const stepAngle = 0.01;
+  MapManager.prototype.drawOnLine = function drawOnLine({ geojson, stepAngle = 0.001 }) {
+    if(this.drawingOnLine){
+      return
+    }
+    this.drawingOnLine = true;
     // subdivide line
-    let segments = [geojson.geometry.coordinates[0]]
+    let segments = [geojson.geometry.coordinates[0]];
     for (let i = 1, l = geojson.geometry.coordinates.length; i < l; i++) {
       const start = geojson.geometry.coordinates[i - 1];
       const end = geojson.geometry.coordinates[i];
@@ -51,7 +53,7 @@ if (MapManager) {
           segments[1]
         ]
       }
-    }
+    };
     let currentIndex = 1;
     let source = this.map.getSource('livedraw');
     if (!source) {
@@ -61,23 +63,26 @@ if (MapManager) {
       });
       source = this.map.getSource('livedraw');
     }
-    this.map.addLayer({
-      id: 'line',
-      type: 'line',
-      source: 'livedraw',
-      layout: {
-        'line-join': 'round',
-        'line-cap': 'round'
-      },
-      paint: {
-        'line-color': '#800',
-        'line-width': 8
-      }
-    });
+    if (!this.map.getLayer('line')) {
+      this.map.addLayer({
+        id: 'line',
+        type: 'line',
+        source: 'livedraw',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#800',
+          'line-width': 8
+        }
+      });
+    }
     this.map.jumpTo({ center: segments[0] });
     const addSegment = () => {
       currentIndex++;
       if (segments.length === currentIndex) {
+        this.drawingOnLine = false;
         return;
       }
       ongoing.geometry.coordinates.push(segments[currentIndex]);
@@ -89,5 +94,5 @@ if (MapManager) {
 
   }
 } else {
-  throw Error('MapManager sdk must be included before applying an extension')
+  throw Error('MapManager sdk must be included before applying an extension');
 }

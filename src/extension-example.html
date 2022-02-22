@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
+    <title>Map Manager Example</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* #map { position: absolute; top: 0; bottom: 0; width: 100%; } */
+        #map {
+            width: 800px;
+            height: 600px;
+        }
+
+        #tokenForm {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="tokenForm">
+        <input type="text" placeholder="mapbox api token" name="mapboxToken" id="inputMapboxToken"><button
+            id="setTokenButton">Set Mapbox Token</button>
+    </div>
+    <div id="map"></div>
+
+    <div id="mapActions">
+        <button id="drawOnLine">Draw on Line</button>
+        <button id="zoomIn">Zoom In</button>
+        <button id="zoomOut">Zoom Out</button>
+        <button id="currentLatLng">Show Current Lat Lng</button>
+    </div>
+
+    <script src="js/map-manager.js"></script>
+    <script src="js/line-draw-extension.js"></script>
+    <script>
+        var mapMan
+        function initMapManager() {
+            mapMan = new MapManager({});
+            mapMan.addJsResponseHandler((name, options) => {
+                console.log(name, options);
+            })
+            mapMan.doAction('setToken', { accessToken: mbToken });
+            mapMan.doAction('init');
+        }
+
+        if (location.hash.indexOf('clearMapboxToken') > -1) {
+            localStorage.removeItem('mapboxToken');
+        }
+
+        let mbToken = localStorage.getItem('mapboxToken');
+        if (!mbToken) {
+            const tokenForm = document.getElementById('tokenForm')
+            tokenForm.style.display = 'block';
+            const tokenInput = document.getElementById('inputMapboxToken');
+            document.getElementById('setTokenButton').addEventListener('click', () => {
+                if (tokenInput.value) {
+                    localStorage.setItem('mapboxToken', tokenInput.value);
+                    mbToken = localStorage.getItem('mapboxToken');
+                    tokenForm.style.display = 'none';
+                    if (location.hash.indexOf('clearMapboxToken')) {
+                        location.hash = '';
+                    }
+                    initMapManager();
+                }
+            })
+        } else {
+            initMapManager();
+        }
+
+        // wire buttons
+        document.getElementById('zoomIn').addEventListener('click', () => {
+            mapMan.doAction('map', { method: 'zoomIn', args: [] })
+        })
+        document.getElementById('zoomOut').addEventListener('click', () => {
+            mapMan.doAction('map', { method: 'zoomOut', args: [] })
+        })
+        document.getElementById('drawOnLine').addEventListener('click', () => {
+            mapMan.doAction('drawOnLine', {
+                stepAngle: 0.001,
+                geojson: {
+                    "type": "Feature",
+                    "properties": {},
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": [
+                            [
+                                -118.44823837280273,
+                                34.06425000282253
+                            ],
+                            [
+                                -118.44403266906738,
+                                34.05870378737542
+                            ],
+                            [
+                                -118.45184326171875,
+                                34.055788323465855
+                            ],
+                            [
+                                -118.43407630920412,
+                                34.03103839734782
+                            ],
+                            [
+                                -118.41390609741211,
+                                34.03160744227741
+                            ],
+                            [
+                                -118.40875625610352,
+                                34.02982916420039
+                            ],
+                            [
+                                -118.3952808380127,
+                                34.0291889749689
+                            ],
+                            [
+                                -118.37794303894042,
+                                34.037582183607775
+                            ],
+                            [
+                                -118.36541175842284,
+                                34.03388358382995
+                            ],
+                            [
+                                -118.34807395935059,
+                                34.03509275919161
+                            ]
+                        ]
+                    }
+                }
+            })
+        })
+        document.getElementById('currentLatLng').addEventListener('click', () => {
+            function handleGetCenter(name, results) {
+                if (name === 'mapGetCenterResult') {
+                    if (results.success) {
+                        console.log(results.success);
+                        alert(results.success);
+                    }
+                    mapMan.removeJsResponseHandler(handleGetCenter);
+                }
+            }
+            mapMan.addJsResponseHandler(handleGetCenter);
+            mapMan.doAction('map', { method: 'getCenter', args: [], results: true })
+        })
+
+    </script>
+</body>
+
+</html>
