@@ -4,7 +4,6 @@ This project provides a javascript library for controlling a mapboxgl map via a 
 
 
 ## Setup
---------------------------------------------------------------------------------
 
 To use the system you will first have to include mapbox GL JS version >= 2.0 and the associated CSS
 
@@ -37,11 +36,10 @@ if(MapManager){
 ```
 
 ## Message Passing
---------------------------------------------------------------------------------
 
-The majority of interactions with the MapManager are expected to be handled by passing and receiving message object.
+The majority of interactions with the `MapManager` are expected to be handled by passing and receiving message object.
 
-Objects passed to the MapManager have the following form:
+Objects passed to the `MapManager` have the following form:
 
 ```js
 {
@@ -61,13 +59,13 @@ Objects received from MapManager have the form:
 
 Messages may be passed via one or more of the following methods:
 
-- Calling the handelMessage on the MapManager instance with a message object
+- Calling the `handelMessage` method on the `MapManager` instance with a message object
 - WebSocket messages with json data
 - Window postMessage messages
 
 ### Direct Message Passing
 
-No special configuration needs to be passed to the MapManager constructor to enable direct message passing.
+No special configuration needs to be passed to the `MapManager` constructor to enable direct message passing.
 
 ```js
 const mapMan = new MapManager({});
@@ -87,7 +85,7 @@ mapMan.doAction('setToken',{accessToken:'MY_ACCESS_TOKEN'});
 
 ### WebSockets
 
-In order to use WebSockets you will need to pass the websocket url to the MapManager constructor using the `wsUrl` option.
+In order to use WebSockets you will need to pass the websocket url to the `MapManager` constructor using the `wsUrl` option.
 
 ```js
 const mapMan = new MapManager({wsUrl:'ws://localhost:3000'});
@@ -95,11 +93,11 @@ const mapMan = new MapManager({wsUrl:'ws://localhost:3000'});
 
 This url will be passed directly to the `WebSocket` constructor and should start with `ws://` or `wss://`
 
-The MapManager will attempt to parse any incoming message as JSON and then use it as a message.
+The `MapManager` will attempt to parse any incoming message as JSON and then use it as a message.
 
 ### Window.postMessage
 
-In order to use postMessage you will need to pass the postMessage flag to the MapManager constructor using the `postMessage` option. Optionally you may include `postMessageOrigin` to do postMessage origin filtering. This origin will be used to filter incoming and outgoing messages.
+In order to use postMessage you will need to pass the postMessage flag to the `MapManager` constructor using the `postMessage` option. Optionally you may include `postMessageOrigin` to do postMessage origin filtering. This origin will be used to filter incoming and outgoing messages.
 
 ```js
 const mapMan = new MapManager({postMessage:true});
@@ -111,7 +109,7 @@ const mapMan = new MapManager({postMessage:true, postMessageOrigin:'http://local
 See for example: [iframe-parent.html](src/iframe-parent.html) and [iframe-child.html](src/iframe-child.html)
 
 
-The MapManager will attempt to parse any incoming message to use as a message.
+The `MapManager` will attempt to parse any incoming message to use as a message.
 
 ## Initialization
 --------------------------------------------------------------------------------
@@ -162,7 +160,7 @@ mapMan.handelMessage({action:'init'});
 ## General Methodology
 --------------------------------------------------------------------------------
 
-The general idea behind MapManager is that it provides a way to create a mapbox GL JS map and control it via message passing.
+The general idea behind `MapManager` is that it provides a way to create a mapbox GL JS map and control it via message passing.
 
 Aside from the messages mentioned during initialization other messages are structured to directly call methods on the mapbox Map object.
 
