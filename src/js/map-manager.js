@@ -39,10 +39,10 @@ class MapManager {
     this.trackedProjections = {}
   }
 
-  connectWs(){
+  connectWs() {
     this.clearWsEvents();
     this.ws = new WebSocket(this.wsUrl)
-    this.wsConnectTimeout = setTimeout(this.onWsTimeout.bind(this),30*1000);
+    this.wsConnectTimeout = setTimeout(this.onWsTimeout.bind(this), 30 * 1000);
     this.wsEvents = {
       'message': this.wsHandelMessage.bind(this),
       'error': this.onWsError.bind(this),
@@ -54,24 +54,24 @@ class MapManager {
         }));
       }
     }
-    for(let event in this.wsEvents){
-      this.ws.addEventListener(event,this.wsEvents[event])
+    for (let event in this.wsEvents) {
+      this.ws.addEventListener(event, this.wsEvents[event])
     }
-    
+
   }
-  clearWsEvents(){
-    if(!this.ws){ return }
-    for(let event in this.wsEvents){
-      this.ws.removeEventListener(event,this.wsEvents[event])
+  clearWsEvents() {
+    if (!this.ws) { return }
+    for (let event in this.wsEvents) {
+      this.ws.removeEventListener(event, this.wsEvents[event])
     }
   }
-  onWsError(event){
-    console.log('ws error',event)
+  onWsError(event) {
+    console.log('ws error', event)
     this.clearWsEvents();
     this.ws = null;
     this.connectWs();
   }
-  onWsTimeout(event){
+  onWsTimeout(event) {
     console.log('ws failed to connect in time')
     this.clearWsEvents();
     this.ws = null;
@@ -86,12 +86,17 @@ class MapManager {
     }
   }
   sendWs(name, results) {
-    if(!this.ws){ return }
+    if (!this.ws) { return }
     const responseObj = { response: name }
     if (results) {
       responseObj['results'] = results
     }
     this.ws.send(JSON.stringify(responseObj))
+  }
+  wsPing() {
+    if (this.ws) {
+      this.sendWs('pong');
+    }
   }
   sendPostMessage(name, results) {
     const responseObj = { response: name }
@@ -120,7 +125,7 @@ class MapManager {
   }
 
   handelMessage(data) {
-    console.log(data)
+    // console.log(data)
     if ('action' in data) {
       if (data.action === 'map') {
         if (!this.map) { return; }
@@ -129,12 +134,12 @@ class MapManager {
           if ('results' in data.options) {
 
             const responseName = `map${data.options.method[0].toLocaleUpperCase()}${data.options.method.substring(1)}Result`
-            this.sendResponse(responseName, { success: result })
+            this.sendResponse(responseName, { success: result, key: data.options.results })
           }
         } catch (err) {
           if ('results' in data.options) {
             const responseName = `map${data.options.method[0].toLocaleUpperCase()}${data.options.method.substring(1)}Result`
-            this.sendResponse(responseName, { error: err })
+            this.sendResponse(responseName, { error: err, key: data.options.results })
           }
         }
       }
@@ -179,22 +184,22 @@ class MapManager {
     const zoom = this.map.getZoom();
     const bounds = this.map.getBounds();
     const results = { lat, lng, zoom, bounds };
-    if(Object.keys(this.trackedProjections).length){
+    if (Object.keys(this.trackedProjections).length) {
       results.projections = {}
-      for(let name in this.trackedProjections){
+      for (let name in this.trackedProjections) {
         const xy = this.map.project(this.trackedProjections[name])
         results.projections[name] = xy;
       }
     }
     this.sendResponse('mapstatus', results);
   }
-  trackProjection({name,location}){
+  trackProjection({ name, location }) {
     this.trackedProjections[name] = location;
   }
-  untrackProjection({name}){
+  untrackProjection({ name }) {
     delete this.trackedProjections[name];
   }
-  clearTrackedProjections(){
+  clearTrackedProjections() {
     this.trackedProjections = {};
   }
   showBounds({ bounds, options }) {
