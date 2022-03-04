@@ -183,7 +183,8 @@ class MapManager {
     const { lng, lat } = this.map.getCenter();
     const zoom = this.map.getZoom();
     const bounds = this.map.getBounds();
-    const results = { lat, lng, zoom, bounds };
+    const bearing = this.map.getBearing();
+    const results = { lat, lng, zoom, bounds, bearing };
     if (Object.keys(this.trackedProjections).length) {
       results.projections = {}
       for (let name in this.trackedProjections) {
@@ -202,10 +203,24 @@ class MapManager {
   clearTrackedProjections() {
     this.trackedProjections = {};
   }
-  showBounds({ bounds, options }) {
+  showBounds({ bounds, options, easeOptions={}, easeTo=true, moveData=null }) {
     if (!this.map) { console.error('map not initialized'); return }
     const camera = this.map.cameraForBounds(bounds, options);
-    console.log(camera)
-    this.map.easeTo(camera);
+    if(easeTo){
+      const easeDetails = {...camera, ...easeOptions};
+      console.log(easeDetails)
+      this.map.easeTo(easeDetails, moveData ? {moveData}: undefined);
+      if(moveData){
+        this.map.once('moveend',(data)=>{
+          this.sendResponse('showBoundsComplete',{moveData})
+        })
+      }
+    }
+    else{
+      this.map.jumpTo(camera);
+      if(moveData){
+        this.sendResponse('showBoundsComplete',{moveData})
+      }
+    }
   }
 }
